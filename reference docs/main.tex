@@ -8,43 +8,59 @@
 % \author{Brenton Candelaria}
 % \date{September 2023}
 \DeclareMathOperator*{\argmin}{argmin}
+\DeclareMathOperator*{\argument}{arg}
 \begin{document}
 
 \maketitle
 
 \section{Formalization}
 \\
-\indent Let $p \in \mathbb{N}^+$ be a natural number, $r \in \mathbb{Q}^+$ be a rational number, $m \in \mathbb{N}^+$ be a natural number, and $\vec{c} \in \mathbb{N}^n s.t. \forall i \in \mathbb{N}^+, i \leq n, c_i > 0 $. Henceforth, $r$ is the "rate", $p$ is the "output quantity", $m$ is the "multiplicity", and $\vec{c}$ is the "input". Then consider a directed acyclic graph $G$ defined as
+
+
+\indent Let $p \in \mathbb{N}^+$ be a natural number, $r \in \mathbb{Q}^+$ be a rational number, $m \in \mathbb{N}^+$ be a natural number, and $\vec{c} \in \mathbb{N}^n s.t. \forall i \in \mathbb{N}^+, i \leq n, c_i \geq 0 $. Henceforth, $r$ is the ``rate", $p$ is the ``output quantity", $m$ is the ``multiplicity", and $\vec{c}$ is the ``input". Then consider a directed acyclic graph $G$ defined as
+% (\exists j \in \mathbb{N}^+ \leq dim(\vec{c_b})\;s.t.\:  M(v_a)*P(v_a) \geq M(v_b) * c_j, j = C(v_b, v_a))\: \\
+ %& \hspace{1.355in}\land
+%, and } C(v_j, v_i) \text{ returns the index of } \vec{c} \text{ that } P(v_i) \text{ corresponds to as input to }, and } C(v_j, v_i) \text{ returns the index of } \vec{c} \text{ that } P(v_i) \text{ corresponds to as input to }
+% & \hspace{1.355in}\\
 
 \begin{align*}
 G &=  \{V, E\}\\
- V_i &\in V = \{v_k \: | \: (p_k, r_k, \vec{c}_k, m_k), \: k \in \mathbb{N}^+\}\\
- E_i &\in E = \{e \: | \: E(v_a, v_b) \implies (\exists j \in \mathbb{N}^+ \leq dim(\vec{c_b}),\:  M(v_a)*P(v_a) \geq M(v_b) * j, j = C(v_b, v_a)\: \\
- & \hspace{1.355in}\land \not \exists (f \in \:E \: s.t.\: f = E(v_a, v_c), \: v_b \neq v_c)\\
- & \hspace{1.355in}\\
- &\text{where } M(v_i) = m_i, P(v_i) = p_i \text{ for the multiplicities and output quantities of a vertex,}\\
- & \text{respectively, and } C(v_j, v_i) \text{ returns the index of } \vec{c_j} \text{ that } P(v_i) \text{ corresponds to}
-\end{align*}
+ V &= \{v_k \: | \: (p_k, r_k, \vec{c}_k, m_k), \: k \in \mathbb{N}^+\}\\
+ E &= \{e \: | \: E(v_a, v_b) \implies (\not \exists f \in \:E \: s.t.\: f = E(v_a, v_c), \: v_b \neq v_c)\}\\
+ & \text{where } M(v_i) = m_i, P(v_i) = p_i \text{ for the multiplicities and output quantities of a vertex, respectively} \end{align*}
 
 \\\medskip
 
-Additionally, let a "source vertex" be defined as:
+Additionally, let a ``source vertex" be defined as:
 
 \[
-S \subset V = \{s \: | \: s = (p=1, r = 0, \vec{c} = \emptyset, n_k \in \mathbb{N}^+\}
+S \subset V = \{s \: | \: s = (p=1, r = 0, \vec{c} = \emptyset, m = 1)\}
 \]
 \medskip
-Finally, we let $T \subset V = V - S$, the set of vertices that are not sources, and $|T| = Q$. Notably, $Q = \sum\limits_{i=1}^n M(v_n) \in \mathbb{N}^+$. Then, let the $\Delta$ operator denote the differences between two connected edges, $v_i, v_j$ as:
+
+Finally, we let $T \subset V = V - S$, the set of vertices that are not sources, and $|T| = Q$. 
+
+Notably, $Q = \sum\limits_{i=1}^n M(v_i) \in \mathbb{N}^+$. Then, let the $\Delta$ operator denote the differences between two connected vertices, $v_i \text{ and } v_j$, as:
 \begin{align*}
-\Delta_{i\rightarrow j} = M(v_j)*\vec{c}_{C(v_j, v_i)} - M(v_i)*P(v_i) \\
-\text{ where } \Delta_{i \rightarrow j} \text{ is defined iff } E(v_i, v_j) \land \Delta_{i \rightarrow j} > 0
+&\Delta_{i\rightarrow j} = M(v_i)*P(v_i) - M(v_j)*\vec{c}_{C(v_j, v_i)}\\
+&\text{ where } C(v_j, v_i) \text{ returns the index of } v_j \text{ for the unique } v_i \text{ on the edge connecting the two.}
 \end{align*}
+
+We overload the operator for a vector representing multiplicities of indices, $\Delta \vec{z}$, to denote the same as the above across all such vertices and edges for a given graph, $G$, as:
+
+\begin{align*}
+&\Delta \vec{z} = \sum\limits_{i=0}^{|V|-1} \sum\limits_{j=i+1}^{|V|} \Delta_{i \rightarrow j}\\
+&\text{ for index pairs } i, j, \in \vec{z}
+\end{align*}
+
 
 Then, let the optimizer $\mathbb{O}(Q, G): \mathbb{N} \times \{ V, E\} \rightarrow \vec{z} \in \mathbb{Z}^{|V|}$ desire the following:
 
 \begin{align*}
-    \vec{z} = \argmin_{z \in \mathbb{Z}^{|V|}} \sum\limits_{i = 0}^{|V|-1} \sum\limits_{j=i+1}^{|V|} \Delta_{i \rightarrow j}\\
-    \text{where } z_i = M(v_i), i \in \mathbb{N}^+ \leq |V|
+    \vec{z}& = \argument_{\vec{z} \in \mathbb{N}^{|V|}}\Delta \vec{z}\\
+    & \text{ for } \\
+    0 & \leq \min_{\vec{z} \in \mathbb{Z}^{|V|}} \sum\limits_{i = 0}^{|V|-1} \sum\limits_{j=i+1}^{|V|} \Delta_{i \rightarrow j}\\
+    & \text{where } z_i = M(v_i), i \in \mathbb{N}^+ \leq |V|\\
 \end{align*}
 
 \end{document}
