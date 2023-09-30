@@ -1,6 +1,6 @@
 \documentclass{article}
 \usepackage{graphicx} % Required for inserting images
-\usepackage{amsmath,amsthm}
+\usepackage{amsmath,amsthm,amsfonts}
 \usepackage{geometry}
 \geometry{a4paper, portrait, margin=2cm}
 
@@ -16,8 +16,7 @@
 \section{Formalization}
 \\
 
-
-\indent Let $p \in \mathbb{N}^+$ be a natural number, $r \in \mathbb{Q}^+$ be a rational number, $m \in \mathbb{N}^+$ be a natural number, and $\vec{c} \in \mathbb{N}^n s.t. \forall i \in \mathbb{N}^+, i \leq n, c_i \geq 0 $. Henceforth, $r$ is the ``rate", $p$ is the ``output quantity", $m$ is the ``multiplicity", and $\vec{c}$ is the ``input". Then consider a directed acyclic graph $G$ defined as
+\indent Let $p \in \mathbb{N}^+$ be a natural number, $t \in \mathbb{Q}^+$ be a rational number, $m \in \mathbb{N}^+$ be a natural number, and $\vec{c} \in \mathbb{N}^n s.t. \forall i \in \mathbb{N}^+, i \leq n,0 < c_i $. Henceforth, $t$ is the ``period", $p$ is the ``output quantity", $m$ is the ``multiplicity", and $\vec{c}$ is the ``input". Then consider a directed acyclic graph $G$ defined as:
 % (\exists j \in \mathbb{N}^+ \leq dim(\vec{c_b})\;s.t.\:  M(v_a)*P(v_a) \geq M(v_b) * c_j, j = C(v_b, v_a))\: \\
  %& \hspace{1.355in}\land
 %, and } C(v_j, v_i) \text{ returns the index of } \vec{c} \text{ that } P(v_i) \text{ corresponds to as input to }, and } C(v_j, v_i) \text{ returns the index of } \vec{c} \text{ that } P(v_i) \text{ corresponds to as input to }
@@ -25,7 +24,7 @@
 
 \begin{align*}
 G &=  \{V, E\}\\
- V &= \{v_k \: | \: (p_k, r_k, \vec{c}_k, m_k), \: k \in \mathbb{N}^+\}\\
+ V &= \{v_k \: | \: v_k = (p_k, t_k, \vec{c}_k, m_k), \: k \in \mathbb{N}^+\}\\
  E &= \{e \: | \: E(v_a, v_b) \implies (\not \exists f \in \:E \: s.t.\: f = E(v_a, v_c), \: v_b \neq v_c)\}\\
  & \text{where } M(v_i) = m_i, P(v_i) = p_i \text{ for the multiplicities and output quantities of a vertex, respectively} \end{align*}
 
@@ -34,33 +33,41 @@ G &=  \{V, E\}\\
 Additionally, let a ``source vertex" be defined as:
 
 \[
-S \subset V = \{s \: | \: s = (p=1, r = 0, \vec{c} = \emptyset, m = 1)\}
+S \subset V = \{s \: | \: s = (p=1, t = 1, \vec{c} = \emptyset, m \in \mathbb{N}^+)\}
 \]
 \medskip
 
-Finally, we let $T \subset V = V - S$, the set of vertices that are not sources, and $|T| = Q$. 
+Finally, we let $T \subset V = V - S$, the set of vertices that are not sources (i.e.: their $\vec{c} \neq \emptyset$,) and $|T| = Q$. 
 
-Notably, $Q = \sum\limits_{i=1}^n M(v_i) \in \mathbb{N}^+$. Then, let the $\Delta$ operator denote the differences between two connected vertices, $v_i \text{ and } v_j$, as:
+Notably, $Q = \sum\limits_{i=1}^n M(v_i)$ for $v_i \in T$ . Then, let the $\Delta$ operator denote the differences between two connected vertices, $v_i \text{ and } v_j$, as:
 \begin{align*}
-&\Delta_{i\rightarrow j} = M(v_i)*P(v_i) - M(v_j)*\vec{c}_{C(v_j, v_i)}\\
-&\text{ where } C(v_j, v_i) \text{ returns the index of } v_j \text{ for the unique } v_i \text{ on the edge connecting the two.}
+&\Delta_{i\rightarrow j} = \begin{cases}
+     M(v_i)\frac{P(v_i)}{T(v_i)} - M(v_j)\frac{\vec{c}_{j,i}}{T(v_j)} & \text { iff } E(v_i, v_j)\\
+     0 & \text{ otherwise}\\
+\end{cases}\\
+&\text{where } \vec{c}_{j,i} \text{ denotes the } i^{th} \text{ component of the vector } \vec{c} \text{ belonging to vertex } v_j,\\
+&\text{and } T(v_j) \text{ denotes the period of some } v_j
 \end{align*}
 
-We overload the operator for a vector representing multiplicities of indices, $\Delta \vec{z}$, to denote the same as the above across all such vertices and edges for a given graph, $G$, as:
+We overload the operator when it acts on set of vertices (as opposed to only two), $\Delta V$, to denote the same as the above across all such vertices and edges for a given graph, $G$, as:
 
 \begin{align*}
-&\Delta \vec{z} = \sum\limits_{i=0}^{|V|-1} \sum\limits_{j=i+1}^{|V|} \Delta_{i \rightarrow j}\\
-&\text{ for index pairs } i, j, \in \vec{z}
+&\Delta V = \sum\limits_{i=1}^{|V|-1} \sum\limits_{j=i+1}^{|V|} |\Delta_{i \rightarrow j}|\\
+&\text{ for indices } i, j \text{ of some } v_i, v_j \in V\\
 \end{align*}
 
-
-Then, let the optimizer $\mathbb{O}(Q, G): \mathbb{N} \times \{ V, E\} \rightarrow \vec{z} \in \mathbb{Z}^{|V|}$ desire the following:
+%N.b.: $\Delta V \geq 0 \: \forall V$, by definition.
+Then, let the optimizer $\mathcal{O}(Q, G): \mathbb{N} \times \{ V, E\} \rightarrow \vec{z} \in \mathbb{N}^{|V|}$ desire the following:
 
 \begin{align*}
-    \vec{z}& = \argument_{\vec{z} \in \mathbb{N}^{|V|}}\Delta \vec{z}\\
+    \vec{z}& = \argmin_{\vec{z} \in \mathbb{N}^{|V|}}\Delta V\\
     & \text{ for } \\
-    0 & \leq \min_{\vec{z} \in \mathbb{Z}^{|V|}} \sum\limits_{i = 0}^{|V|-1} \sum\limits_{j=i+1}^{|V|} \Delta_{i \rightarrow j}\\
-    & \text{where } z_i = M(v_i), i \in \mathbb{N}^+ \leq |V|\\
+    \Delta V & = \min_{\vec{z} \in \mathbb{N}^{|V|}} \sum\limits_{i = 1}^{|V|-1} \sum\limits_{j=i+1}^{|V|} \Delta_{i \rightarrow j}\\
+    & \text{where } z_i = M(v_i) \: \forall v_i \in V\\
 \end{align*}
 
+
+% Nota bene: WITH THE ABOVE FORMALIZATION, Jared's "greedy' algorithm of minimizing "effective" rates *should* work now
+% And all of these definitions *should* be exactly/approximately what the real problem is
+% Nota bene 2: Bottlenecking *shouldn't* be a problem basically ever, esp. if we favor overproduction if absolutely necessary for the optimization
 \end{document}
