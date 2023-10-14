@@ -13,7 +13,7 @@
         "-o",
         "2",
         "-p",
-        "150"
+        "300"
       ],
 			"stopAtEntry": true,
 			"cwd": "${fileDirname}",

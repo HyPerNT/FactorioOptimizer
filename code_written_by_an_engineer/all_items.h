@@ -14,7 +14,6 @@ struct recipe_t {
   char* name;
   uint8_t produced;
   uint8_t time;
-  uint8_t index;
   uint8_t inputs_len;
   inputs_t* inputs_vec[];
 };
@@ -24,7 +23,6 @@ recipe_t copper_plate = {
   1,
   1,
   0,
-  0,
   NULL
 };
 
@@ -32,7 +30,6 @@ recipe_t iron_plate = {
   "Iron Plate",
   1,
   1,
-  0,
   0,
   NULL
 };
@@ -42,7 +39,6 @@ recipe_t iron_gear_wheel = {
   "Iron Gear Wheel",
   2,
   1,
-  0,
   1,
   {&iron_gear_wheel_iron_plate}
 };
@@ -52,7 +48,6 @@ recipe_t copper_cable = {
   "Copper Cable",
   4,
   1,
-  0,
   1,
   {&copper_cable_copper_plate}
 };
@@ -63,7 +58,6 @@ recipe_t electronic_circuit = {
   "Electronic Circuit",
   2,
   1,
-  0,
   2,
   {&electronic_circuit_copper_cable, &electronic_circuit_iron_plate}
 };
@@ -75,7 +69,6 @@ recipe_t inserter = {
   "Inserter",
   2,
   1,
-  0,
   3,
   {&inserter_electronic_circuit, &inserter_iron_gear_wheel, &inserter_iron_plate}
 };
@@ -86,7 +79,6 @@ recipe_t transport_belt = {
   "Transport Belt",
   4,
   1,
-  0,
   2,
   {&transport_belt_iron_gear_wheel, &transport_belt_iron_plate}
 };
@@ -97,7 +89,6 @@ recipe_t automation_science_pack = {
   "Automation Science Pack",
   1,
   5,
-  0,
   2,
   {&automation_science_pack_iron_gear_wheel, &automation_science_pack_copper_plate}
 };
@@ -108,7 +99,6 @@ recipe_t logistic_science_pack = {
   "Logistic Science Pack",
   1,
   6,
-  0,
   2,
   {&logistic_science_pack_inserter, &logistic_science_pack_transport_belt}
 };
