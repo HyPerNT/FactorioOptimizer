@@ -270,29 +270,72 @@ void optimize_set_rate(V_t* V, uint16_t* P, float* scaling_factor) {
                     consumer->c_vec[ii].two * producer->t / consumer->t /
                     producer->p);
 
-      /// This is a load bearing printf statement. Starting to regret calling
-      /// this function by dereferencing a void pointer.
-      printf(" ");
-      /// I am legally obligated to say this is a joke. The printf does
-      /// nothing and is just a leftover from debugging that I forgot to remove.
-      /// ...
-      /// Or is it?
-
     }
 
   }
 
 }
 
-/// @brief Prints out the multiplicity of every vertex in the graph.
+/// @brief Prints out the multiplicity of every vertex in the graph. Because the
+/// vertexes do not map to unique recipes, this will print out the total
+/// multiplicity for a recipe in chunks.
 /// @param V A pointer to the set of all vertexes.
 void print_multiplicity(V_t* V) {
 
-  /// Formatting
+  /// Formatting.
   printf("\r\n");
 
   /// Loops through all vertexes in the graph.
   for(uint8_t i = 0; i < V->cardinality; i++) {
+
+    /// Find the length of the name of the item represented by the vertex.
+    uint8_t name_len = 0;
+    while( *(V->elements[i].destraction->name + name_len++) ) {}
+
+    /// Print out the multiplicity. Some extra formatting to be nicer.
+    if(V->elements[i].c_len)
+      printf("%d assemblers for %.*s\r\n", V->elements[i].m, name_len,
+                                          &V->elements[i].destraction->name[0]);
+    else
+      printf("%d %.*s/s per second\r\n", V->elements[i].m, name_len,
+                                          &V->elements[i].destraction->name[0]);
+
+  }
+
+}
+
+/// @brief Prints out the total multiplicity for each unique item. In order to 
+/// save memory and run faster, it destroys the graph so this function should
+/// only be called once at the end.
+/// @param V A pointer to the set of all vertexes.
+void print_destructively(V_t* V) {
+
+  /// Formatting.
+  printf("\r\n");
+
+  /// Loops through all vertexes in the graph.
+  for(uint8_t i = 0; i < V->cardinality; i++) {
+
+    /// If the vertex has already been counted, skip it.
+    if(!V->elements[i].destraction)
+      continue;
+
+    /// Loop through the rest of the graph.
+    for(uint16_t ii = i + 1; ii < V->cardinality; ii++) {
+
+      /// Check if the item is a duplicate.
+      if(V->elements[i].destraction == V->elements[ii].destraction) {
+
+        /// Add the duplicate to the original.
+        V->elements[i].m += V->elements[ii].m;
+
+        /// Erase the duplicate's recipe association as a way to keep track of
+        /// already counted vertexes.
+        V->elements[ii].destraction = NULL;
+
+      }
+
+    }
 
     /// Find the length of the name of the item represented by the vertex.
     uint8_t name_len = 0;
@@ -359,7 +402,7 @@ void optimize(recipe_t* node, ass_param_t* specs, uint8_t optimizer,
          "Absolute Delta: %+02.3f\r\n", E.delta, E.delta_abs);
 
   /// Print the results.
-  print_multiplicity(&V);
+  print_destructively(&V);
 
   /// Release the memory.
   free(V.elements);
@@ -374,7 +417,7 @@ void optimize(recipe_t* node, ass_param_t* specs, uint8_t optimizer,
 int main(uint8_t argc, char** argv) {
 
   /// Set default recipe.
-  recipe_t* to_optimize = &logistic_science_pack;
+  recipe_t* to_optimize = &chemical_science_pack;
 
   /// Set default assembler parameters.
   ass_param_t assembler_param = {
