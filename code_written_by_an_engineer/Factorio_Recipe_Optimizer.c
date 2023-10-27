@@ -39,6 +39,7 @@ typedef struct {
 } edge_t;
 
 /// @brief A struct to hold the parameters of a vertex.
+/// @todo Implement a system of tiers for better final output formatting.
 typedef struct {
   recipe_t* destraction; /// Spelled this way very deliberately.
   uint16_t m;            /// The "multiplicity".
@@ -51,19 +52,17 @@ typedef struct {
                          /// quantity.
 } vertex_t;
 
-/// @brief A struct to hold the set of all edges.
+/// @brief  A struct to hold a recipe graph as defined in the paper and a few
+/// extras to make the program more efficient.
 typedef struct {
-  uint16_t cardinality; /// Self
-  edge_t* elements;     /// Explanitory.
-  float delta;          /// The total delta of all edges.
-  float delta_abs;      /// THe total absolute delta of all edges.
-} E_t;
-
-/// @brief A struct to hold the set of all vertexes.
-typedef struct {
-  uint16_t cardinality; /// Self
-  vertex_t* elements;   /// Explanitory.
-} V_t;
+  uint16_t cardinality; /// The cardinality of the vertex set.
+  vertex_t* vertexes;   /// The set of all vertexes.
+  edge_t* edges;        /// The set of all edges.
+  float delta;          /// The sum of the differences in inputs and outputs 
+                        /// for the whole graph.
+  float delta_abs;      /// The sum of the absolute difference in inputs and
+                        /// outputs in the graph.
+} graph;
 
 /// @brief Uses Euler's method to find the GCD of two numbers. I know there are
 /// faster ways but I'm lazy.
@@ -115,32 +114,31 @@ void lcm_rational(pair_t *ans, pair_t* list, int* len) {
 }
 
 /// @brief Calculates delta for each edge and the overall graph.
-/// @param V A pointer to the set of all vertexes.
-/// @param E A pointer to the set of all edges.
-void update_deltas(V_t* V, E_t* E) {
+/// @param G A pointer to a recipe graph.
+void update_deltas(graph* G) {
 
   /// Wipe the slate clean.
-  E->delta = 0.0f;
-  E->delta_abs = 0.0f;
+  G->delta = 0.0f;
+  G->delta_abs = 0.0f;
 
   /// Loops through every edge.
-  for(uint8_t i = 0; i < E->cardinality; i++) {
+  for(uint8_t i = 0; i < G->cardinality - 1; i++) {
 
     /// Label to make the code easier to read.
-    vertex_t* consumer = &V->elements[E->elements[i].c_index];
+    vertex_t* consumer = &G->vertexes[G->edges[i].c_index];
 
     /// Label to make the code easier to read.
-    vertex_t* producer = &V->elements[i + 1];
+    vertex_t* producer = &G->vertexes[i + 1];
 
     /// Finds the difference between production and consumption.
-    E->elements[i].delta = (1.0f * producer->m * producer->p / producer->t) -
+    G->edges[i].delta = (1.0f * producer->m * producer->p / producer->t) -
                            (1.0f * consumer->m *
-                           consumer->c_vec[E->elements[i].cc_index].two /
+                           consumer->c_vec[G->edges[i].cc_index].two /
                                                                    consumer->t);
 
     /// Update the running total as we go.
-    E->delta += E->elements[i].delta;
-    E->delta_abs += fabs(E->elements[i].delta);
+    G->delta += G->edges[i].delta;
+    G->delta_abs += fabs(G->edges[i].delta);
 
   }
 
@@ -157,7 +155,7 @@ uint16_t cardinality(recipe_t* node) {
   
   /// Recursively step through the recipe.
   for(int i = 0; i < node->inputs_len; i++)
-    tmp += cardinality(node->inputs_vec[i]->item);
+    tmp += cardinality(node->inputs_vec[i][0]);
 
   /// Returns the cardinality at each step such that it adds up and returns the 
   /// true value when the recursion is over.
@@ -171,40 +169,40 @@ uint16_t cardinality(recipe_t* node) {
 /// @param V A pointer to the set of all vertexes.
 /// @param E A pointer to the set of all edges.
 /// @todo Fill out edge information
-void construct_graph(recipe_t* node, V_t* V, E_t* E) {
+void construct_graph(recipe_t* node, graph* G) {
 
   /// Keeps track of where the next empty index in the elements array is.
   uint16_t frontier = 1;
 
   /// Set the initial pointer before entering the loop.
-  V->elements[0].destraction = node;
+  G->vertexes[0].destraction = node;
 
   /// Loops through all vertexes in the graph.
-  for(uint8_t i = 0; i < V->cardinality; i++) {
+  for(uint8_t i = 0; i < G->cardinality; i++) {
 
     /// The pointers are set before hand, so just follow it now.
-    node = V->elements[i].destraction;
+    node = G->vertexes[i].destraction;
 
     /// Fill out the information for the vertex.
-    V->elements[i].m = 1;
-    V->elements[i].p = node->produced;
-    V->elements[i].t = node->time;
-    V->elements[i].c_len = node->inputs_len;
+    G->vertexes[i].m = 1;
+    G->vertexes[i].p = node->produced;
+    G->vertexes[i].t = node->time;
+    G->vertexes[i].c_len = node->inputs_len;
 
     /// Loop through all inputs to the current vertex.
     for(uint8_t ii = 0; ii < node->inputs_len; ii++) {
 
       /// Fill in the pointers ahead of time.
-      V->elements[frontier].destraction = node->inputs_vec[ii]->item;
+      G->vertexes[frontier].destraction = node->inputs_vec[ii][0];
 
       /// Fill out the input information for the vertex.
-      V->elements[i].c_vec[ii].one = frontier;
-      V->elements[i].c_vec[ii].two = node->inputs_vec[ii]->item_amount;
+      G->vertexes[i].c_vec[ii].one = frontier;
+      G->vertexes[i].c_vec[ii].two = (uint16_t)node->inputs_vec[ii][1];
 
       /// Fill out the information for the edge between the current vertex and
       /// the current input vertex.
-      E->elements[frontier - 1].c_index = i;
-      E->elements[frontier - 1].cc_index = ii;
+      G->edges[frontier - 1].c_index = i;
+      G->edges[frontier - 1].cc_index = ii;
 
       /// Move up to the next array position.
       frontier++;
@@ -219,7 +217,7 @@ void construct_graph(recipe_t* node, V_t* V, E_t* E) {
 /// damned.
 /// @param V A pointer to the set of all vertexes.
 /// @todo Implement this fuction.
-void optimize_exact(V_t* V) {}
+void optimize_exact(graph* G) {}
 
 /// @brief Attempts to optimize the graph for the lowest delta while staying
 /// under the Q limit.
@@ -228,14 +226,14 @@ void optimize_exact(V_t* V) {}
 /// @param Q The limit to the summation of all vertexes times there
 /// multiplicity.
 /// @todo Implement this fuction.
-void optimize_q_limit(V_t* V, E_t* E, uint16_t* Q) {}
+void optimize_q_limit(graph* G, uint16_t* Q) {}
 
 /// @brief Attempts to optimize the graph to have a final output of at least P.
 /// @param V A pointer to the set of all vertexes.
 /// @param P The desired output in units per minute.
 /// @param scaling_factor A value that scales the final output. Calculated from
 /// the assemblers parameters.
-void optimize_set_rate(V_t* V, uint16_t* P, float* scaling_factor) {
+void optimize_set_rate(graph* G, uint16_t* P, float* scaling_factor) {
 
   /// Calculates the final output rate to shoot for given the user request and
   /// scaling factor
@@ -243,27 +241,27 @@ void optimize_set_rate(V_t* V, uint16_t* P, float* scaling_factor) {
 
   /// A multiplicity of below one is not allows per the defined problem. It
   /// is possible in-game though so I may revisit this later.
-  if((true_rate * V->elements[0].t / V->elements[0].p) < 1.0f) {
+  if((true_rate * G->vertexes[0].t / G->vertexes[0].p) < 1.0f) {
     printf("Multiplicity below 1 required, currently not supported.\r\n");
     return;
   }
 
   /// Sets the multiplicity of the first vertex to be the smallest integer that
   /// still results in at least the user desired output rate.
-  V->elements[0].m = (uint16_t)ceil(true_rate * V->elements[0].t /
-                     V->elements[0].p);
+  G->vertexes[0].m = (uint16_t)ceil(true_rate * G->vertexes[0].t /
+                     G->vertexes[0].p);
 
   /// Loops through all vertexes in the graph.
-  for(uint8_t i = 0; i < V->cardinality; i++) {
+  for(uint8_t i = 0; i < G->cardinality; i++) {
 
     /// Label to make the code easier to read.
-    vertex_t* consumer = &V->elements[i];
+    vertex_t* consumer = &G->vertexes[i];
 
     /// Loop through ever input of the current vertex.
     for(uint8_t ii = 0; ii < consumer->c_len; ii++) {
       
       /// Label to make the code easier to read.
-      vertex_t* producer = &V->elements[consumer->c_vec[ii].one];
+      vertex_t* producer = &G->vertexes[consumer->c_vec[ii].one];
 
       /// The minimum multiplicity is set by what the vertex above consumes.
       producer->m = (uint16_t)ceil(1.0f * consumer->m *
@@ -280,25 +278,25 @@ void optimize_set_rate(V_t* V, uint16_t* P, float* scaling_factor) {
 /// vertexes do not map to unique recipes, this will print out the total
 /// multiplicity for a recipe in chunks.
 /// @param V A pointer to the set of all vertexes.
-void print_multiplicity(V_t* V) {
+void print_multiplicity(graph* G) {
 
   /// Formatting.
   printf("\r\n");
 
   /// Loops through all vertexes in the graph.
-  for(uint8_t i = 0; i < V->cardinality; i++) {
+  for(uint8_t i = 0; i < G->cardinality; i++) {
 
     /// Find the length of the name of the item represented by the vertex.
     uint8_t name_len = 0;
-    while( *(V->elements[i].destraction->name + name_len++) ) {}
+    while( *(G->vertexes[i].destraction->name + name_len++) ) {}
 
     /// Print out the multiplicity. Some extra formatting to be nicer.
-    if(V->elements[i].c_len)
-      printf("%d assemblers for %.*s\r\n", V->elements[i].m, name_len,
-                                          &V->elements[i].destraction->name[0]);
+    if(G->vertexes[i].c_len)
+      printf("%d assemblers for %.*s\r\n", G->vertexes[i].m, name_len,
+                                          &G->vertexes[i].destraction->name[0]);
     else
-      printf("%d %.*s/s per second\r\n", V->elements[i].m, name_len,
-                                          &V->elements[i].destraction->name[0]);
+      printf("%d %.*s/s per second\r\n", G->vertexes[i].m, name_len,
+                                          &G->vertexes[i].destraction->name[0]);
 
   }
 
@@ -308,30 +306,30 @@ void print_multiplicity(V_t* V) {
 /// save memory and run faster, it destroys the graph so this function should
 /// only be called once at the end.
 /// @param V A pointer to the set of all vertexes.
-void print_destructively(V_t* V) {
+void print_destructively(graph* G) {
 
   /// Formatting.
   printf("\r\n");
 
   /// Loops through all vertexes in the graph.
-  for(uint8_t i = 0; i < V->cardinality; i++) {
+  for(uint8_t i = 0; i < G->cardinality; i++) {
 
     /// If the vertex has already been counted, skip it.
-    if(!V->elements[i].destraction)
+    if(!G->vertexes[i].destraction)
       continue;
 
     /// Loop through the rest of the graph.
-    for(uint16_t ii = i + 1; ii < V->cardinality; ii++) {
+    for(uint16_t ii = i + 1; ii < G->cardinality; ii++) {
 
       /// Check if the item is a duplicate.
-      if(V->elements[i].destraction == V->elements[ii].destraction) {
+      if(G->vertexes[i].destraction == G->vertexes[ii].destraction) {
 
         /// Add the duplicate to the original.
-        V->elements[i].m += V->elements[ii].m;
+        G->vertexes[i].m += G->vertexes[ii].m;
 
         /// Erase the duplicate's recipe association as a way to keep track of
         /// already counted vertexes.
-        V->elements[ii].destraction = NULL;
+        G->vertexes[ii].destraction = NULL;
 
       }
 
@@ -339,15 +337,15 @@ void print_destructively(V_t* V) {
 
     /// Find the length of the name of the item represented by the vertex.
     uint8_t name_len = 0;
-    while( *(V->elements[i].destraction->name + name_len++) ) {}
+    while( *(G->vertexes[i].destraction->name + name_len++) ) {}
 
     /// Print out the multiplicity. Some extra formatting to be nicer.
-    if(V->elements[i].c_len)
-      printf("%d assemblers for %.*s\r\n", V->elements[i].m, name_len,
-                                          &V->elements[i].destraction->name[0]);
+    if(G->vertexes[i].c_len)
+      printf("%d assemblers for %.*s\r\n", G->vertexes[i].m, name_len,
+                                          &G->vertexes[i].destraction->name[0]);
     else
-      printf("%d %.*s/s per second\r\n", V->elements[i].m, name_len,
-                                          &V->elements[i].destraction->name[0]);
+      printf("%d %.*s/s per second\r\n", G->vertexes[i].m, name_len,
+                                          &G->vertexes[i].destraction->name[0]);
 
   }
 
@@ -371,42 +369,38 @@ void optimize(recipe_t* node, ass_param_t* specs, uint8_t optimizer,
   float scaling_factor = speed_lvs[specs->lv - 1] *
                               (specs->mod_num * mod_lvs[specs->mod_lv - 1] + 1);
   
-  /// Create the Vertex set based on the recipe to optimize.
-  V_t V;
-  V.cardinality = cardinality(node);
-  V.elements = (vertex_t*)malloc(V.cardinality * sizeof(vertex_t));
-
-  /// Create the Edge set based on the Vertex set.
-  E_t E;
-  E.cardinality = V.cardinality - 1;
-  E.elements = (edge_t*)malloc(E.cardinality * sizeof(edge_t));
+  /// Allocate the memory for the graph
+  graph G;
+  G.cardinality = cardinality(node);
+  G.vertexes = (vertex_t*)malloc(G.cardinality * sizeof(vertex_t));
+  G.edges = (edge_t*)malloc((G.cardinality - 1) * sizeof(edge_t));
 
   /// Populate the graph with all the actual information.
-  construct_graph(node, &V, &E);
+  construct_graph(node, &G);
 
   /// Just a nice reference to see the initial error.
-  update_deltas(&V, &E);
+  update_deltas(&G);
   printf("Initial, unoptimized error:\r\n"
-         "Delta: %+02.3f\r\nAbsolute Delta: %+02.3f\r\n", E.delta, E.delta_abs);
+         "Delta: %+02.3f\r\nAbsolute Delta: %+02.3f\r\n", G.delta, G.delta_abs);
 
   /// Black Pointer Magic. This is an efficient was to call different functions
   /// easily and pass a variable number of parameters. This *potentially*,
   /// **might**, ***maybe*** have a ****few**** drawbacks but whatever.
   void* kill_me[3] = {optimize_exact, optimize_q_limit, optimize_set_rate};
-  ( (void (*)()) kill_me[optimizer])(&V, &num, &scaling_factor);
+  ( (void (*)()) kill_me[optimizer])(&G, &num, &scaling_factor);
 
   /// See how the error changes after optimization.
-  update_deltas(&V, &E);
+  update_deltas(&G);
   printf("\r\nOptimized error:\r\n"
          "Delta: %+02.3f\r\n"
-         "Absolute Delta: %+02.3f\r\n", E.delta, E.delta_abs);
+         "Absolute Delta: %+02.3f\r\n", G.delta, G.delta_abs);
 
   /// Print the results.
-  print_destructively(&V);
+  print_destructively(&G);
 
   /// Release the memory.
-  free(V.elements);
-  free(E.elements);
+  free(G.vertexes);
+  free(G.edges);
 }
 
 /// @brief The main function.
@@ -417,13 +411,13 @@ void optimize(recipe_t* node, ass_param_t* specs, uint8_t optimizer,
 int main(uint8_t argc, char** argv) {
 
   /// Set default recipe.
-  recipe_t* to_optimize = &chemical_science_pack;
+  recipe_t* to_optimize = &automation_science_pack;
 
   /// Set default assembler parameters.
   ass_param_t assembler_param = {
     3, /// Level 3 assemblers
     0, /// 0 installed modules
-    1  /// Level 1 modules
+    3  /// Level 3 modules
   };
 
   /// Set default optimizer to be invalid since this is a required parameter.

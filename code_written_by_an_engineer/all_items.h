@@ -3,374 +3,347 @@
 #include <stdint.h>
 
 typedef struct recipe_t recipe_t;
-typedef struct inputs_t inputs_t;
-
-struct inputs_t {
-  recipe_t* item;
-  uint16_t item_amount;
-};
 
 struct recipe_t {
   char* name;
+  uint8_t tier;
   uint8_t produced;
   uint8_t time;
   uint8_t inputs_len;
-  inputs_t* inputs_vec[];
+  recipe_t* inputs_vec[][2];
 };
+
+char* machines[] = {"Assembler", "Chemical Plant", "Miner"};
 
 recipe_t copper_plate = {
   "Copper Plate",
+  100,
   1,
   1,
   0,
-  NULL
+  {{NULL}, {NULL}}
 };
 
 recipe_t iron_plate = {
   "Iron Plate",
+  100,
   1,
   1,
   0,
-  NULL
+  {{NULL}, {NULL}}
 };
 
 recipe_t coal = {
   "Coal",
+  100,
   1,
   1,
   0,
-  NULL
+  {{NULL}, {NULL}}
 };
 
 recipe_t steel_plate = {
   "Steel Plate",
+  100,
   1,
   1,
   0,
-  NULL
+  {{NULL}, {NULL}}
 };
 
 recipe_t stone = {
   "Stone",
+  100,
   1,
   1,
   0,
-  NULL
+  {{NULL}, {NULL}}
 };
 
 recipe_t stone_brick = {
   "Stone brick",
+  100,
   1,
   1,
   0,
-  NULL
+  {{NULL}, {NULL}}
 };
 
 recipe_t sulfur = {
   "Sulfur",
+  100,
   1,
   1,
   0,
-  NULL
+  {{NULL}, {NULL}}
 };
 
 recipe_t plastic_bar = {
   "Plastic bar",
+  100,
   1,
   1,
   0,
-  NULL
+  {{NULL}, {NULL}}
 };
 
 recipe_t sulfuric_acid = {
   "Sulfuric acid",
+  100,
   1,
   1,
   0,
-  NULL
+  {{NULL}, {NULL}}
 };
 
 recipe_t battery = {
   "Battery",
+  100,
   1,
   1,
   0,
-  NULL
+  {{NULL}, {NULL}}
 };
 
 recipe_t lubricant = {
   "Lubricant",
+  100,
   1,
   1,
   0,
-  NULL
+  {{NULL}, {NULL}}
 };
 
-inputs_t iron_gear_wheel_iron_plate = {&iron_plate, 4};
 recipe_t iron_gear_wheel = {
   "Iron Gear Wheel",
+  100,
   2,
   1,
   1,
-  {&iron_gear_wheel_iron_plate}
+  {{&iron_plate, (recipe_t*)4}}
 };
 
-inputs_t copper_cable_copper_plate = {&copper_plate, 2};
 recipe_t copper_cable = {
   "Copper Cable",
+  100,
   4,
   1,
   1,
-  {&copper_cable_copper_plate}
+  {{&copper_plate, (recipe_t*)2}}
 };
 
-inputs_t ammo_iron_plate = {&iron_plate, 4};
 recipe_t ammo = {
   "Firearm magazine",
+  100,
   1,
   1,
   1,
-  {&ammo_iron_plate}
+  {{&iron_plate, (recipe_t*)4}}
 };
 
-inputs_t wall_stone_brick = {&stone_brick, 10};
 recipe_t wall = {
   "Wall",
+  100,
   2,
   1,
   1,
-  {&wall_stone_brick}
+  {{&stone_brick, (recipe_t*)10}}
 };
 
-inputs_t iron_stick_iron_plate = {&iron_plate, 2};
 recipe_t iron_stick = {
   "Iron stick",
+  100,
   4,
   1,
   1,
-  {&iron_stick_iron_plate}
+  {{&iron_plate, (recipe_t*)2}}
 };
 
-inputs_t rail_iron_stick = {&iron_stick, 2};
-inputs_t rail_steel_plate = {&steel_plate, 2};
-inputs_t rail_stone = {&stone, 2};
 recipe_t rail = {
   "Rail",
+  100,
   4,
   1,
   3,
-  {&rail_iron_stick, &rail_steel_plate, &rail_stone}
+  {{&iron_stick, (recipe_t*)2}, {&steel_plate, (recipe_t*)2}, {&stone, (recipe_t*)2}}
 };
 
-inputs_t pipe_steel_plate = {&steel_plate, 2};
 recipe_t pipe_ = {
   "Pipe",
+  100,
   2,
   1,
   1,
-  {&pipe_steel_plate}
+  {{&steel_plate, (recipe_t*)2}}
 };
 
-inputs_t electronic_circuit_copper_cable = {&copper_cable, 6};
-inputs_t electronic_circuit_iron_plate = {&iron_plate, 2};
 recipe_t electronic_circuit = {
   "Electronic Circuit",
+  100,
   2,
   1,
   2,
-  {&electronic_circuit_copper_cable, &electronic_circuit_iron_plate}
+  {{&copper_cable, (recipe_t*)6}, {&iron_plate, (recipe_t*)2}}
 };
 
-inputs_t inserter_electronic_circuit = {&electronic_circuit, 2};
-inputs_t inserter_iron_gear_wheel = {&iron_gear_wheel, 2};
-inputs_t inserter_iron_plate = {&iron_plate, 2};
 recipe_t inserter = {
   "Inserter",
+  100,
   2,
   1,
   3,
-  {&inserter_electronic_circuit, &inserter_iron_gear_wheel, &inserter_iron_plate}
+  {{&electronic_circuit, (recipe_t*)2}, {&iron_gear_wheel, (recipe_t*)2}, {&iron_plate, (recipe_t*)2}}
 };
 
-inputs_t transport_belt_iron_gear_wheel = {&iron_gear_wheel, 2};
-inputs_t transport_belt_iron_plate = {&iron_plate, 2};
 recipe_t transport_belt = {
   "Transport Belt",
+  100,
   4,
   1,
   2,
-  {&transport_belt_iron_gear_wheel, &transport_belt_iron_plate}
+  {{&iron_gear_wheel, (recipe_t*)2}, {&iron_plate, (recipe_t*)2}}
 };
 
-inputs_t grenade_coal = {&coal, 10};
-inputs_t grenade_iron_plate = {&iron_plate, 5};
 recipe_t grenade = {
   "Grenade",
+  100,
   1,
   8,
   2,
-  {&grenade_coal, &grenade_iron_plate}
+  {{&coal, (recipe_t*)10}, {&iron_plate, (recipe_t*)5}}
 };
 
-inputs_t piercing_ammo_copper_plate = {&copper_plate, 5};
-inputs_t piercing_ammo_ammo = {&ammo, 1};
-inputs_t piercing_ammo_steel_plate = {&steel_plate, 1};
 recipe_t piercing_ammo = {
   "Piercing Rounds Magazine",
+  100,
   1,
   3,
   3,
-  {&piercing_ammo_copper_plate, &piercing_ammo_ammo, &piercing_ammo_steel_plate}
+  {{&copper_plate, (recipe_t*)5}, {&ammo, (recipe_t*)1}, {&steel_plate, (recipe_t*)1}}
 };
 
-inputs_t advanced_circuit_copper_cable = {&copper_cable, 4};
-inputs_t advanced_circuit_circuit = {&electronic_circuit, 2};
-inputs_t advanced_circuit_plastic_bar = {&plastic_bar, 2};
 recipe_t advanced_circuit = {
   "Advanced circuit",
+  100,
   1,
   6,
   3,
-  {&advanced_circuit_copper_cable, &advanced_circuit_circuit, &advanced_circuit_plastic_bar}
+  {{&copper_cable, (recipe_t*)4}, {&electronic_circuit, (recipe_t*)2}, {&plastic_bar, (recipe_t*)2}}
 };
 
-inputs_t processing_unit_advanced_circuit = {&advanced_circuit, 2};
-inputs_t processing_unit_electronic_circuit = {&electronic_circuit, 20};
-inputs_t processing_unit_sulfuric_acid = {&sulfuric_acid, 5};
 recipe_t processing_unit = {
   "Processing unit",
+  100,
   1,
   10,
   3,
-  {&processing_unit_advanced_circuit, &processing_unit_electronic_circuit, &processing_unit_sulfuric_acid}
+  {{&advanced_circuit, (recipe_t*)2}, {&electronic_circuit, (recipe_t*)20}, {&sulfuric_acid, (recipe_t*)5}}
 };
 
-inputs_t engine_iron_gear_wheel = {&iron_gear_wheel, 1};
-inputs_t engine_pipe = {&pipe_, 2};
-inputs_t engine_steel_plate = {&steel_plate, 1};
 recipe_t engine = {
   "Engine unit",
+  100,
   1,
   10,
   3,
-  {&engine_iron_gear_wheel, &engine_pipe, &engine_steel_plate}
+  {{&iron_gear_wheel, (recipe_t*)1}, {&pipe_, (recipe_t*)2}, {&steel_plate, (recipe_t*)1}}
 };
 
-inputs_t productivity_module_advanced_circuit = {&advanced_circuit, 5};
-inputs_t productivity_module_circuit = {&electronic_circuit, 5};
 recipe_t productivity_module = {
   "Productivity module",
+  100,
   1,
   15,
   2,
-  {&productivity_module_advanced_circuit, &productivity_module_circuit}
+  {{&advanced_circuit, (recipe_t*)5}, {&electronic_circuit, (recipe_t*)5}}
 };
 
-inputs_t electric_furnace_advanced_circuit = {&advanced_circuit, 5};
-inputs_t electric_furnace_steel_plate = {&steel_plate, 10};
-inputs_t electric_furnace_stone_brick = {&stone_brick, 10};
 recipe_t electric_furnace = {
   "Electric furnace",
+  100,
   1,
   5,
   3,
-  {&electric_furnace_advanced_circuit, &electric_furnace_steel_plate, &electric_furnace_stone_brick}
+  {{&advanced_circuit, (recipe_t*)5}, {&steel_plate, (recipe_t*)10}, {&stone_brick, (recipe_t*)10}}
 };
 
-inputs_t low_density_structure_copper_plate = {&copper_plate, 20};
-inputs_t low_density_structure_plastic_bar = {&plastic_bar, 5};
-inputs_t low_density_structure_steel_plate = {&steel_plate, 2};
 recipe_t low_density_structure = {
   "Low density structure",
+  100,
   1,
   20,
   3,
-  {&low_density_structure_copper_plate, &low_density_structure_plastic_bar, &low_density_structure_steel_plate}
+  {{&copper_plate, (recipe_t*)20}, {&plastic_bar, (recipe_t*)5}, {&steel_plate, (recipe_t*)2}}
 };
 
-inputs_t electric_engine_unit_electronic_circuit = {&electronic_circuit, 2};
-inputs_t electric_engine_unit_engine = {&engine, 1};
-inputs_t electric_engine_unit_lubricant = {&lubricant, 5};
 recipe_t electric_engine_unit = {
   "Electric engine unit",
+  100,
   1,
   10,
   3,
-  {&electric_engine_unit_electronic_circuit, &electric_engine_unit_engine, &electric_engine_unit_lubricant}
+  {{&electronic_circuit, (recipe_t*)2}, {&engine, (recipe_t*)1}, {&lubricant, (recipe_t*)5}}
 };
 
-inputs_t flying_robot_frame_battery = {&battery, 2};
-inputs_t flying_robot_frame_electric_engine_unit = {&electric_engine_unit, 1};
-inputs_t flying_robot_frame_electronic_circuit = {&electronic_circuit, 3};
-inputs_t flying_robot_frame_steel_plate = {&steel_plate, 1};
 recipe_t flying_robot_frame = {
   "Flying robot frame",
+  100,
   1,
   20,
   4,
-  {&flying_robot_frame_battery, &flying_robot_frame_electric_engine_unit, &flying_robot_frame_electronic_circuit, &flying_robot_frame_steel_plate}
+  {{&battery, (recipe_t*)2}, {&electric_engine_unit, (recipe_t*)1}, {&electronic_circuit, (recipe_t*)3}, {&steel_plate, (recipe_t*)1}}
 };
 
-inputs_t automation_science_pack_copper_plate = {&copper_plate, 1};
-inputs_t automation_science_pack_iron_gear_wheel = {&iron_gear_wheel, 1};
 recipe_t automation_science_pack = {
   "Automation Science Pack",
+  100,
   1,
   5,
   2,
-  {&automation_science_pack_iron_gear_wheel, &automation_science_pack_copper_plate}
+  {{&iron_gear_wheel, (recipe_t*)1}, {&copper_plate, (recipe_t*)1}}
 };
 
-inputs_t logistic_science_pack_inserter = {&inserter, 1};
-inputs_t logistic_science_pack_transport_belt = {&transport_belt, 1};
 recipe_t logistic_science_pack = {
   "Logistic Science Pack",
+  100,
   1,
   6,
   2,
-  {&logistic_science_pack_inserter, &logistic_science_pack_transport_belt}
+  {{&inserter, (recipe_t*)1}, {&transport_belt, (recipe_t*)1}}
 };
 
-inputs_t military_science_pack_grenade = {&grenade, 1};
-inputs_t military_science_pack_piercing_ammo = {&piercing_ammo, 1};
-inputs_t military_science_pack_wall = {&wall, 2};
 recipe_t military_science_pack = {
   "Military Science Pack",
+  100,
   2,
   10,
   3,
-  {&military_science_pack_grenade, &military_science_pack_piercing_ammo, &military_science_pack_wall}
+  {{&grenade, (recipe_t*)1}, {&piercing_ammo, (recipe_t*)1}, {&wall, (recipe_t*)2}}
 };
 
-inputs_t chemical_science_pack_advanced_circuit = {&advanced_circuit, 3};
-inputs_t chemical_science_pack_engine = {&engine, 2};
-inputs_t chemical_science_pack_sulfur = {&sulfur, 1};
 recipe_t chemical_science_pack = {
   "Chemical science pack",
+  100,
   2,
   24,
   3,
-  {&chemical_science_pack_advanced_circuit, &chemical_science_pack_engine, &chemical_science_pack_sulfur}
+  {{&advanced_circuit, (recipe_t*)3}, {&engine, (recipe_t*)2}, {&sulfur, (recipe_t*)1}}
 };
 
-inputs_t production_science_pack_electric_furnace = {&electric_furnace, 1};
-inputs_t production_science_pack_productivity_module = {&productivity_module, 1};
-inputs_t production_science_pack_rail = {&rail, 30};
 recipe_t production_science_pack = {
   "Production science pack",
+  100,
   3,
   21,
   3,
-  {&production_science_pack_electric_furnace, &production_science_pack_productivity_module, &production_science_pack_rail}
+  {{&electric_furnace, (recipe_t*)1}, {&productivity_module, (recipe_t*)1}, {&rail, (recipe_t*)30}}
 };
 
-inputs_t utility_science_pack_flying_robot_frame = {&flying_robot_frame, 1};
-inputs_t utility_science_pack_low_density_structure = {&low_density_structure, 3};
-inputs_t utility_science_pack_processing_unit = {&processing_unit, 2};
 recipe_t utility_science_pack = {
   "Utility science pack",
+  100,
   3,
   21,
   3,
-  {&utility_science_pack_flying_robot_frame, &utility_science_pack_low_density_structure, &utility_science_pack_processing_unit}
+  {{&flying_robot_frame, (recipe_t*)1}, {&low_density_structure, (recipe_t*)3}, {&processing_unit, (recipe_t*)2}}
 };
